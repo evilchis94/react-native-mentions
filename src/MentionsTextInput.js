@@ -5,6 +5,7 @@ import {
   Animated,
   TextInput,
   FlatList,
+  ScrollView
 } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -50,7 +51,7 @@ export default class MentionsTextInput extends Component {
     this.closeSuggestionsPanel();
     this.setState({
       isTrackingStrated: false
-    })
+    });
   }
 
   openSuggestionsPanel(height) {
@@ -105,6 +106,39 @@ export default class MentionsTextInput extends Component {
   render() {
     return (
       <View>
+        <TextInput
+          {...this.props}
+          onChange={(event) => {
+            console.log("HELLO1")
+            this.setState({
+              textInputHeight: event.nativeEvent.contentSize.height + 10,
+            });
+          }}
+          ref={component => this._textInput = component}
+          onChangeText={this.onChangeText.bind(this)}
+          multiline={true}
+          value={this.props.value}
+          style={[{ ...this.props.textInputStyle }, { height: this.state.textInputHeight }]}
+          placeholder={this.props.placeholder ? this.props.placeholder : 'Write a comment...'}
+        />
+        {(this.isTrackingStrated) && (
+          <View style={{
+            width: 20,
+            height: 20,
+            backgroundColor: 'transparent',
+            borderStyle: 'solid',
+            borderTopWidth: 0,
+            borderRightWidth: 10,
+            borderBottomWidth: 20,
+            borderLeftWidth: 10,
+            borderTopColor: 'transparent',
+            borderRightColor: 'transparent',
+            borderBottomColor: '#fff',
+            borderLeftColor: 'transparent',
+            marginLeft: 15,
+            marginTop: -15
+          }}></View>
+        )}
         <Animated.View style={[{ ...this.props.suggestionsPanelStyle }, { height: this.state.suggestionRowHeight }]}>
           <FlatList
             keyboardShouldPersistTaps={"always"}
@@ -116,20 +150,6 @@ export default class MentionsTextInput extends Component {
             renderItem={(rowData) => { return this.props.renderSuggestionsRow(rowData, this.stopTracking.bind(this)) }}
           />
         </Animated.View>
-        <TextInput
-          {...this.props}
-          onContentSizeChange={(event) => {
-            this.setState({
-              textInputHeight: this.props.textInputMinHeight >= event.nativeEvent.contentSize.height ? this.props.textInputMinHeight : event.nativeEvent.contentSize.height + 10,
-            });
-          }}
-          ref={component => this._textInput = component}
-          onChangeText={this.onChangeText.bind(this)}
-          multiline={true}
-          value={this.props.value}
-          style={[{ ...this.props.textInputStyle }, { height: Math.min(this.props.textInputMaxHeight, this.state.textInputHeight) }]}
-          placeholder={this.props.placeholder ? this.props.placeholder : 'Write a comment...'}
-        />
       </View>
     )
   }
