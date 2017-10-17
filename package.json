@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/harshq/react-native-mentions/issues"
   },
+  "dependencies": {
+    "react-native-parsed-text": "https://github.com/taskrabbit/react-native-parsed-text.git"
+  },
   "homepage": "https://github.com/harshq/react-native-mentions#readme"
 }
