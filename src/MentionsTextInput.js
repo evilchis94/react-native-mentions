@@ -5,10 +5,8 @@ import {
   Animated,
   TextInput,
   FlatList,
-  ScrollView
 } from 'react-native';
 import PropTypes from 'prop-types';
-import ParsedText from 'react-native-parsed-text';
 
 export default class MentionsTextInput extends Component {
   constructor() {
@@ -30,7 +28,7 @@ export default class MentionsTextInput extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.text) {
+    if (!nextProps.value) {
       this.resetTextbox();
     } else if (this.isTrackingStrated && !nextProps.horizontal && nextProps.suggestionsData.length !== 0) {
       const numOfRows = nextProps.MaxVisibleRowCount >= nextProps.suggestionsData.length ? nextProps.suggestionsData.length : nextProps.MaxVisibleRowCount;
@@ -52,7 +50,7 @@ export default class MentionsTextInput extends Component {
     this.closeSuggestionsPanel();
     this.setState({
       isTrackingStrated: false
-    });
+    })
   }
 
   openSuggestionsPanel(height) {
@@ -86,7 +84,7 @@ export default class MentionsTextInput extends Component {
   }
 
   onChangeText(val) {
-    this.props.onChangeText(val);
+    this.props.onChangeText(val); // pass changed text back
     const lastChar = val.substr(val.length - 1);
     const wordBoundry = (this.props.triggerLocation === 'new-word-only') ? this.previousChar.trim().length === 0 : true;
     if (lastChar === this.props.trigger && wordBoundry) {
@@ -104,54 +102,9 @@ export default class MentionsTextInput extends Component {
     this.setState({ textInputHeight: this.props.textInputMinHeight });
   }
 
-  renderText(matchingString, matches) {
-    let pattern = /\[(@[^:]+):([^\]]+)\]/i;
-    let match = matchingString.match(pattern);
-    return `${match[1]}`;
-  }
-
   render() {
     return (
       <View>
-        <TextInput
-          {...this.props}
-          onChange={(event) => {
-            this.setState({
-              textInputHeight: event.nativeEvent.contentSize.height + 10,
-            });
-          }}
-          ref={component => this._textInput = component}
-          onChangeText={this.onChangeText.bind(this)}
-          multiline={true}
-          style={[{ ...this.props.textInputStyle }, { height: this.state.textInputHeight }]}
-          placeholder={this.props.placeholder ? this.props.placeholder : 'Write a post...'}
-        >
-          <ParsedText
-            parse={[
-              {pattern: /\[(@[^:]+):([^\]]+)\]/i, renderText: this.renderText}
-            ]}
-          >
-            {this.props.text}
-          </ParsedText>
-        </TextInput>
-        {(this.isTrackingStrated) && (
-          <View style={{
-            width: 20,
-            height: 20,
-            backgroundColor: 'transparent',
-            borderStyle: 'solid',
-            borderTopWidth: 0,
-            borderRightWidth: 10,
-            borderBottomWidth: 20,
-            borderLeftWidth: 10,
-            borderTopColor: 'transparent',
-            borderRightColor: 'transparent',
-            borderBottomColor: '#fff',
-            borderLeftColor: 'transparent',
-            marginLeft: 15,
-            marginTop: -15
-          }}></View>
-        )}
         <Animated.View style={[{ ...this.props.suggestionsPanelStyle }, { height: this.state.suggestionRowHeight }]}>
           <FlatList
             keyboardShouldPersistTaps={"always"}
@@ -163,6 +116,20 @@ export default class MentionsTextInput extends Component {
             renderItem={(rowData) => { return this.props.renderSuggestionsRow(rowData, this.stopTracking.bind(this)) }}
           />
         </Animated.View>
+        <TextInput
+          {...this.props}
+          onContentSizeChange={(event) => {
+            this.setState({
+              textInputHeight: this.props.textInputMinHeight >= event.nativeEvent.contentSize.height ? this.props.textInputMinHeight : event.nativeEvent.contentSize.height + 10,
+            });
+          }}
+          ref={component => this._textInput = component}
+          onChangeText={this.onChangeText.bind(this)}
+          multiline={true}
+          value={this.props.value}
+          style={[{ ...this.props.textInputStyle }, { height: Math.min(this.props.textInputMaxHeight, this.state.textInputHeight) }]}
+          placeholder={this.props.placeholder ? this.props.placeholder : 'Tag a friend...'}
+        />
       </View>
     )
   }
@@ -179,7 +146,7 @@ MentionsTextInput.propTypes = {
   textInputMaxHeight: PropTypes.number,
   trigger: PropTypes.string.isRequired,
   triggerLocation: PropTypes.oneOf(['new-word-only', 'anywhere']).isRequired,
-  //value: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
   onChangeText: PropTypes.func.isRequired,
   triggerCallback: PropTypes.func.isRequired,
   renderSuggestionsRow: PropTypes.oneOfType([
