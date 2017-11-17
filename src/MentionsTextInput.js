@@ -74,23 +74,17 @@ export default class MentionsTextInput extends Component {
 
   identifyKeyword(val) {
     if (this.isTrackingStrated) {
-      const boundary = this.props.triggerLocation === 'new-word-only' ? 'B' : '';
-      const pattern = new RegExp(`\\${boundary}${this.props.trigger}[a-z0-9_-]+|\\${boundary}${this.props.trigger}`, `gi`);
-      const keywordArray = val.match(pattern);
-      if (keywordArray && !!keywordArray.length) {
-        const lastKeyword = keywordArray[keywordArray.length - 1];
-        this.updateSuggestions(lastKeyword);
-      }
+      this.updateSuggestions(val);
     }
   }
 
   onChangeText(val) {
-    this.props.onChangeText(val); // pass changed text back
+    this.props.onChangeText(val);
     const lastChar = val.substr(val.length - 1);
     const wordBoundry = (this.props.triggerLocation === 'new-word-only') ? this.previousChar.trim().length === 0 : true;
-    if (lastChar === this.props.trigger && wordBoundry) {
+    if (val != '') {
       this.startTracking();
-    } else if (lastChar === ' ' && this.state.isTrackingStrated || val === "") {
+    } else {
       this.stopTracking();
     }
     this.previousChar = lastChar;
